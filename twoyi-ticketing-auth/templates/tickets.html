@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Tickets &amp; Reports · {{ app_title }}{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <h1>Tickets &amp; reports</h1>
+  <p class="page-sub">Filter by branch, priority or status, then export the current view to CSV.</p>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><span class="stat-num">{{ summary.total }}</span><span class="stat-label">Showing</span></div>
+  <div class="stat"><span class="stat-num">{{ summary.open }}</span><span class="stat-label">Open</span></div>
+  <div class="stat"><span class="stat-num">{{ summary.in_progress }}</span><span class="stat-label">In progress</span></div>
+  <div class="stat"><span class="stat-num">{{ summary.closed }}</span><span class="stat-label">Closed</span></div>
+  <div class="stat stat-flag"><span class="stat-num">{{ summary.high_priority_open }}</span><span class="stat-label">High priority open</span></div>
+</div>
+
+<form class="card filters" method="get" action="{{ url_for('tickets_report') }}">
+  <div class="filter-field">
+    <label for="q">Search</label>
+    <input type="text" id="q" name="q" value="{{ args.q or '' }}" placeholder="Ticket # or concern">
+  </div>
+  <div class="filter-field">
+    <label for="branch">Branch</label>
+    <select id="branch" name="branch">
+      <option value="">All branches</option>
+      {% for b in branches %}
+        <option value="{{ b }}" {% if args.branch == b %}selected{% endif %}>{{ b }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="filter-field">
+    <label for="priority">Priority</label>
+    <select id="priority" name="priority">
+      <option value="">Any</option>
+      {% for p in priorities %}
+        <option value="{{ p }}" {% if args.priority == p %}selected{% endif %}>{{ p }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="filter-field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">Any</option>
+      {% for s in statuses %}
+        <option value="{{ s }}" {% if args.status == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="filter-field">
+    <label for="from">From</label>
+    <input type="date" id="from" name="from" value="{{ args.get('from', '') }}">
+  </div>
+  <div class="filter-field">
+    <label for="to">To</label>
+    <input type="date" id="to" name="to" value="{{ args.get('to', '') }}">
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="btn-primary">Apply</button>
+    <a class="btn-ghost" href="{{ url_for('tickets_report') }}">Reset</a>
+    <a class="btn-ghost" href="{{ url_for('export_csv', **args) }}">Export CSV</a>
+  </div>
+</form>
+
+<div class="table-wrap">
+  <table class="report">
+    <thead>
+      <tr>
+        <th>Ticket #</th>
+        <th>Branch</th>
+        <th>Concern / Request</th>
+        <th>Priority</th>
+        <th>Date created</th>
+        <th>Date finished</th>
+        <th>Status</th>
+        <th>Logged by</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tickets %}
+      <tr>
+        <td class="mono">{{ t['Ticket Number'] }}</td>
+        <td>{{ t['Branch'] }}</td>
+        <td class="concern-cell">{{ t['Concern/Request'] }}</td>
+        <td><span class="badge badge-{{ t['Priority']|lower }}">{{ t['Priority'] }}</span></td>
+        <td>{{ t['Date Created'] }}</td>
+        <td>{{ t['Date Finished'] or '—' }}</td>
+        <td>
+          <span class="status status-{{ t['Status']|lower|replace(' ', '-') }}">{{ t['Status'] }}</span>
+          {% if t['Status'] == 'Closed' and t['Closed By'] %}<div class="muted small">by {{ t['Closed By'] }}</div>{% endif %}
+        </td>
+        <td class="muted">{{ t['Created By'] or '—' }}</td>
+        <td><div class="actions-cell">
+          <form method="post" action="{{ url_for('update_status', ticket_id=t['ID']) }}" class="status-form">
+            <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+            <select name="status" onchange="this.form.submit()" aria-label="Change status">
+              {% for s in statuses %}
+                <option value="{{ s }}" {% if t['Status'] == s %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </form>
+          {% if t['Status'] != 'Closed' %}
+          <form method="post" action="{{ url_for('close_ticket', ticket_id=t['ID']) }}"
+                onsubmit="return confirm('Close ticket {{ t['Ticket Number'] }}?');">
+            <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+            <button type="submit" class="btn-close">Close</button>
+          </form>
+          {% endif %}
+        </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="9" class="empty-row">No tickets match these filters yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

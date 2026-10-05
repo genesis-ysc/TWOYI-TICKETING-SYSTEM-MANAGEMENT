@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}My Tickets · {{ app_title }}{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <h1>My tickets</h1>
+  <p class="page-sub">Everything submitted by {{ current_user.email or current_user.username }}, most recent first.</p>
+</div>
+
+<div class="table-wrap">
+  <table class="report">
+    <thead>
+      <tr>
+        <th>Ticket #</th>
+        <th>Branch</th>
+        <th>Concern / Request</th>
+        <th>Priority</th>
+        <th>Date created</th>
+        <th>Date finished</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tickets %}
+      <tr>
+        <td class="mono">{{ t['Ticket Number'] }}</td>
+        <td>{{ t['Branch'] }}</td>
+        <td class="concern-cell">{{ t['Concern/Request'] }}</td>
+        <td><span class="badge badge-{{ t['Priority']|lower }}">{{ t['Priority'] }}</span></td>
+        <td>{{ t['Date Created'] }}</td>
+        <td>{{ t['Date Finished'] or '—' }}</td>
+        <td>
+          <span class="status status-{{ t['Status']|lower|replace(' ', '-') }}">{{ t['Status'] }}</span>
+          {% if t['Status'] == 'Closed' and t['Closed By'] %}<div class="muted small">by {{ t['Closed By'] }}</div>{% endif %}
+        </td>
+        <td>
+          {% if t['Status'] != 'Closed' %}
+          <form method="post" action="{{ url_for('close_ticket', ticket_id=t['ID']) }}"
+                onsubmit="return confirm('Close ticket {{ t['Ticket Number'] }}? Only an admin can reopen it.');">
+            <input type="hidden" name="next" value="{{ url_for('my_tickets') }}">
+            <button type="submit" class="btn-close">Close ticket</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="8" class="empty-row">You haven't submitted any tickets yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ app_title }}{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="{{ url_for('new_ticket_form') }}">
+      <span class="brand-mark">T</span>
+      <span class="brand-name">{{ app_title }}</span>
+    </a>
+    {% if current_user %}
+    <nav class="tabs">
+      <a href="{{ url_for('new_ticket_form') }}"
+         class="tab {% if request.endpoint == 'new_ticket_form' %}active{% endif %}">New Ticket</a>
+      <a href="{{ url_for('my_tickets') }}"
+         class="tab {% if request.endpoint == 'my_tickets' %}active{% endif %}">My Tickets</a>
+      {% if current_user.role == 'admin' %}
+      <a href="{{ url_for('tickets_report') }}"
+         class="tab {% if request.endpoint == 'tickets_report' %}active{% endif %}">All Tickets &amp; Reports</a>
+      {% endif %}
+    </nav>
+    <div class="user-menu">
+      <span class="user-name">{{ current_user.display_name }}</span>
+      <span class="role-pill role-{{ current_user.role }}">{{ current_user.role }}</span>
+      <a href="{{ url_for('account') }}" class="user-link">Account</a>
+      <a href="{{ url_for('logout') }}" class="user-link">Log out</a>
+    </div>
+    {% endif %}
+  </div>
+</header>
+
+<main class="page">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="foot">
+  <span>Twoyi Ticketing System &middot; data stored locally in SQLite</span>
+</footer>
+</body>
+</html>

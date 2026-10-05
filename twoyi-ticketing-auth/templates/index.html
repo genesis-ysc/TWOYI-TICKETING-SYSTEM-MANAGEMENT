@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}New Ticket · {{ app_title }}{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <h1>Log a breakdown or request</h1>
+  <p class="page-sub">Pick the branch, describe the issue, and set how urgent it is. A ticket number is assigned automatically.</p>
+</div>
+
+<form class="card form" method="post" action="{{ url_for('create_ticket') }}">
+  <div class="field">
+    <label for="branch">Branch</label>
+    <select id="branch" name="branch" required>
+      <option value="" disabled {% if not form %}selected{% endif %}>Select branch</option>
+      {% for b in branches %}
+        <option value="{{ b }}" {% if form and form.branch == b %}selected{% endif %}>{{ b }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="concern">Concern / Request</label>
+    <textarea id="concern" name="concern" rows="5" required
+      placeholder="What broke down, or what's being requested?">{% if form %}{{ form.concern }}{% endif %}</textarea>
+  </div>
+
+  <div class="field">
+    <label>Priority</label>
+    <div class="priority-choices">
+      {% for p in priorities %}
+        <label class="priority-choice priority-{{ p|lower }}">
+          <input type="radio" name="priority" value="{{ p }}"
+            {% if (form and form.priority == p) or (not form and p == 'Medium') %}checked{% endif %}>
+          <span>{{ p }}</span>
+        </label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <button type="submit" class="btn-primary">Submit ticket</button>
+</form>
+
+{% endblock %}
