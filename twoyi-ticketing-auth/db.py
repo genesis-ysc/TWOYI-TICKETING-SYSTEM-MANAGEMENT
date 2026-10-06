@@ -54,11 +54,16 @@ BRANCHES = [
     "Salcedo Village",
     "SM Aura",
     "Otaku",
-    "BGC",
     "Opus Mall",
     "SM North Edsa",
     "The Corner House",
     "Aguirre",
+    'TWOYI Finance',
+    "TWOYI AfterSales",
+    "TWOYI Warehouse",
+    "TWOYI Purcahsing",
+    "TWOYI Roasters",
+    "TWOYI HR",
 ]
 
 PRIORITIES = ["High", "Medium", "Low"]
